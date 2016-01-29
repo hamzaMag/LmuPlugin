@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.handlers">
+      <handler
+      		class="diallomagroun.lmu.ui.GenerateFromFileMenu"
+            commandId="diallomagroun.lmu.ui.GenerateFromFileMenu"
+            name="GenerateFromFileHandler">
+      </handler>
+   </extension>
+   <extension
+         point="org.eclipse.ui.commands">
+      <command
+      		defaultHandler="diallomagroun.lmu.ui.GenerateFromFileCommand"
+            id="diallomagroun.lmu.ui.GenerateFromFileCommand"
+            name="GenerateFromFileCommand">
+      </command>
+   </extension>
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            allPopups="false"
+            locationURI="popup:org.eclipse.ui.popup.any?after=additions">
+         <menu
+               label="GenerateFromFileMenu">
+               <command commandId="diallomagroun.lmu.ui.GenerateFromFileMenu"
+               label="LMU" style="push">
+                  <visibleWhen
+                        checkEnabled="false">
+                     <with
+                           variable="activeMenuSelection">
+                        <iterate
+                              ifEmpty="false">
+                              <or>
+                           <adapt
+                                 type="org.eclipse.core.resources.IResource">
+                              <test
+                                    property="org.eclipse.core.resources.extension"
+                                    value="java">
+                              </test>
+                           </adapt>
+                           <adapt type="org.eclipse.jdt.core.IJavaProject"/>
+							<adapt type="org.eclipse.jdt.core.IPackageFragment"/>
+                           <adapt
+                                 type="org.eclipse.core.resources.IResource">
+                              <test
+                                    property="org.eclipse.core.resources.extension"
+                                    value="jar">
+                              </test>
+                           </adapt>
+                           </or>
+                        </iterate>
+                     </with>
+                  </visibleWhen></command>
+         </menu>
+      </menuContribution>
+   </extension>
+</plugin>
