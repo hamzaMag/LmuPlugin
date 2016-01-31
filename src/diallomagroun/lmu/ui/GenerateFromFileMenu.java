@@ -48,34 +48,104 @@ public class GenerateFromFileMenu extends AbstractHandler {
 
 	@Override
 	public Object execute(ExecutionEvent event) throws org.eclipse.core.commands.ExecutionException {
-		HandlePath(event);
-		/*try {
-			getClassPathFromProject(event);
-		} catch (CoreException e) {
-			// TODO Auto-generated catch block
+		try {
+			HandlePath(event);
+		} catch (JavaModelException e) {
 			e.printStackTrace();
-		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (HeadlessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}*/
+		}
 		return null;
 	}
+	
+	@Override
+	public boolean isEnabled() {
+		return true;
+	}
+
+	@Override
+	public boolean isHandled() {
+		return true;
+	}
+
+	@Override
+	public void removeHandlerListener(IHandlerListener handlerListener) {
+		// TODO Auto-generated method stub
+	}
+	
+	public String getAbsolutePath() {
+		IWorkspace workspace = ResourcesPlugin.getWorkspace();
+        String pathToWorkspace = workspace.getRoot().getLocation().toFile().toString();
+        return pathToWorkspace;
+	}
+	public String chooseExtension() {
+		String[] choices = { "PDF", "TXT", "JAVA", "JAR" };
+		String extension = (String) JOptionPane.showInputDialog(null, "Choose now...","The Choice of a Lifetime", JOptionPane.QUESTION_MESSAGE, null,choices,choices[1]);
+		return extension;
+	}
+	public String generateFromJavaProject(Object firstElement) throws JavaModelException {
+		IJavaProject javaProject = (IJavaProject) firstElement;
+		return getAbsolutePath() + javaProject.getOutputLocation().toFile();
+	}
+	public String generateFromJarFile(Object firstElement) {
+		IFile jarFile = (IFile) firstElement;
+		return jarFile.getLocation().toString();
+	}
+	public String generateFromJavaFile(Object firstElement) {
+		ICompilationUnit javaFile = (ICompilationUnit) firstElement;
+		return javaFile.getElementName().replace(".java",".class");
+	}
+	public String generateFromPackage(Object firstElement) throws JavaModelException {
+		IPackageFragment ipf = (IPackageFragment) firstElement;
+		return ipf.getElementName().replace(".", "/");
+	}
+	public void HandlePath(ExecutionEvent event) throws JavaModelException {
+		IStructuredSelection selection = (IStructuredSelection) HandlerUtil.getActiveSite(event).getSelectionProvider().getSelection();
+		Object[] tab = selection.toArray();
+		Arrays.fill(tab, null);
+		Object firstElement = selection.getFirstElement();
+		if(firstElement.getClass().getName() == "org.eclipse.jdt.internal.core.CompilationUnit") {
+			JOptionPane.showMessageDialog(null,generateFromJavaFile(firstElement));
+		} else if(firstElement.getClass().getName() == "org.eclipse.core.internal.resources.File") {
+			JOptionPane.showMessageDialog(null,generateFromJarFile(firstElement));
+		} else if(firstElement.getClass().getName() == "org.eclipse.jdt.internal.core.PackageFragment") {
+			JOptionPane.showMessageDialog(null,generateFromPackage(firstElement));
+		} else if(firstElement.getClass().getName() == "org.eclipse.jdt.internal.core.JavaProject") {
+			JOptionPane.showMessageDialog(null,generateFromJavaProject(firstElement));
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	public void chooseFolder(ExecutionEvent event) {
 		String filename = File.separator;
 		//Get our file saver to the screen
-		
-		
 		IStructuredSelection selection = (IStructuredSelection) HandlerUtil.getActiveSite(event).getSelectionProvider().getSelection();
 		Object firstElement = selection.getFirstElement();
 		//ICompilationUnit javaFile = (ICompilationUnit) firstElement;
-		
 	    JFileChooser fc = new JFileChooser(new File(filename));
 	    fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY); //Only able to select directiories
 	    // Show open dialog; this method does not return until the dialog is closed
@@ -113,19 +183,7 @@ public class GenerateFromFileMenu extends AbstractHandler {
 			}
 		}
 	}*/
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+		
 	public void getClassPathFromProject(ExecutionEvent event) throws CoreException, MalformedURLException, HeadlessException, ClassNotFoundException {
 		IStructuredSelection selection = (IStructuredSelection) HandlerUtil.getActiveSite(event).getSelectionProvider().getSelection();
 		Object firstElement = selection.getFirstElement();
@@ -148,76 +206,5 @@ public class GenerateFromFileMenu extends AbstractHandler {
 		//List<URLClassLoader> loaders = new ArrayList<URLClassLoader>();
 		//loaders.add(getProjectClassLoader(project));
 		}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	public void HandlePath(ExecutionEvent event) {
-		IStructuredSelection selection = (IStructuredSelection) HandlerUtil.getActiveSite(event).getSelectionProvider().getSelection();
-		if (selection == null) {
-			//return null;
-		}
-		
-		Object[] tab = selection.toArray();
-		JOptionPane.showMessageDialog(null,tab.length);
-		for(int i=0;i<tab.length;i++) {
-			System.out.println(tab[i].getClass().getName());
-		}
-		Arrays.fill(tab, null);
-		Object firstElement = selection.getFirstElement();
-		if(firstElement.getClass().getName() == "org.eclipse.jdt.internal.core.CompilationUnit") {
-			ICompilationUnit javaFile = (ICompilationUnit) firstElement;
-			try {
-				JOptionPane.showMessageDialog(null,javaFile.getElementName() + "\n" + javaFile.getPath());
-			} catch (HeadlessException e) {
-				e.printStackTrace();
-			}
-		} else if(firstElement.getClass().getName() == "org.eclipse.core.internal.resources.File") {
-			IFile jarFile = (IFile) firstElement;
-			try {
-				JOptionPane.showMessageDialog(null,jarFile.getName() + "\n" + jarFile.getProject() + "\n" + jarFile.getLocation());
-			} catch(HeadlessException e) {
-				e.printStackTrace();
-			}
-		} else if(firstElement.getClass().getName() == "org.eclipse.jdt.internal.core.PackageFragment") {
-			IPackageFragment pack = (IPackageFragment) firstElement;
-			try {
-				JOptionPane.showMessageDialog(null,pack.getElementName() + "\n" + pack.getCompilationUnits().length);
-			} catch(HeadlessException e) {
-				e.printStackTrace();
-			} catch (JavaModelException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		} else if(firstElement.getClass().getName() == "org.eclipse.jdt.core.IJavaProject") {
-			IJavaProject javaProject = (IJavaProject) firstElement;
-			try {
-				JOptionPane.showMessageDialog(null,javaProject.getElementName());
-			} catch(HeadlessException e) {
-				e.printStackTrace();
-			}
-		}
-	}
-
-	@Override
-	public boolean isEnabled() {
-		return true;
-	}
-
-	@Override
-	public boolean isHandled() {
-		return true;
-	}
-
-	@Override
-	public void removeHandlerListener(IHandlerListener handlerListener) {
-		// TODO Auto-generated method stub
-	}
 
 }
