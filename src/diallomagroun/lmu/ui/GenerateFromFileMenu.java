@@ -7,6 +7,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.swing.JFileChooser;
@@ -25,6 +26,7 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.JavaModelException;
@@ -71,7 +73,7 @@ public class GenerateFromFileMenu extends AbstractHandler {
 		// TODO Auto-generated method stub
 	}
 	
-	public String getAbsolutePath() {
+	public static String getAbsolutePath() {
 		IWorkspace workspace = ResourcesPlugin.getWorkspace();
         String pathToWorkspace = workspace.getRoot().getLocation().toFile().toString();
         return pathToWorkspace;
@@ -104,12 +106,17 @@ public class GenerateFromFileMenu extends AbstractHandler {
 		Object firstElement = selection.getFirstElement();
 		if(firstElement.getClass().getName() == "org.eclipse.jdt.internal.core.CompilationUnit") {
 			JOptionPane.showMessageDialog(null,generateFromJavaFile(firstElement));
+			JOptionPane.showMessageDialog(null,generateFromJavaProject(firstElement));
 		} else if(firstElement.getClass().getName() == "org.eclipse.core.internal.resources.File") {
 			JOptionPane.showMessageDialog(null,generateFromJarFile(firstElement));
 		} else if(firstElement.getClass().getName() == "org.eclipse.jdt.internal.core.PackageFragment") {
 			JOptionPane.showMessageDialog(null,generateFromPackage(firstElement));
 		} else if(firstElement.getClass().getName() == "org.eclipse.jdt.internal.core.JavaProject") {
 			JOptionPane.showMessageDialog(null,generateFromJavaProject(firstElement));
+			List<String> chemins = getPathFromJavaProject((IJavaProject) firstElement);
+			for(int i=0;i<chemins.size();i++) {
+				System.out.println(chemins.get(i));
+			}
 		}
 	}
 	
@@ -117,7 +124,34 @@ public class GenerateFromFileMenu extends AbstractHandler {
 	
 	
 	
-	
+	public static List<String> getPathFromJavaProject(IJavaProject javaProject) throws JavaModelException {
+		List<String> chemins = new ArrayList<String>();
+		String prefix = getAbsolutePath() + javaProject.getOutputLocation().toFile();
+	      List<ICompilationUnit> units = new LinkedList<ICompilationUnit>();
+	      try {
+	         IPackageFragmentRoot[] packageFragmentRoots = javaProject.getAllPackageFragmentRoots();
+	         for(int i = 0; i < packageFragmentRoots.length; i++) {
+	            IPackageFragmentRoot packageFragmentRoot = packageFragmentRoots[i];
+	            IJavaElement[] fragments = packageFragmentRoot.getChildren();
+	            for(int j = 0; j < fragments.length; j++) {
+	               IPackageFragment fragment = (IPackageFragment)fragments[j];          
+	               IJavaElement[] javaElements = fragment.getChildren();
+	               for(int k = 0; k < javaElements.length; k++) {
+	                  IJavaElement javaElement = javaElements[k];
+	                  if(javaElement.getElementType() == IJavaElement.COMPILATION_UNIT) {
+	                     units.add( (ICompilationUnit)javaElement);
+	                     System.out.println(fragment.getElementName());
+	                     chemins.add(prefix + fragment.getElementName().replace(".","/") + javaElement.getElementName().replace(".java",".class"));
+	                  }
+	               }
+	            }
+	         }
+	      }
+	      catch(Exception e) {
+	         e.printStackTrace();
+	      }
+	      return chemins;
+	}
 	
 	
 	
